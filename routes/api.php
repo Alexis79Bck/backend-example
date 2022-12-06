@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\API\BookController;
+use App\Http\Controllers\API\AuthorController;
+use App\Http\Controllers\API\PublisherController;
+use App\Http\Controllers\API\CategoryController;
 use App\Http\Resources\AuthorResource;
 use App\Http\Resources\BookResource;
 use App\Http\Resources\CategoryResource;
@@ -22,33 +26,65 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::get('/books', function(){
-    return BookResource::collection(Book::all());
+Route::prefix('books')->group(function () {
+    Route::get('/', [BookController::class,'index']);
+
+    Route::post('/new', [BookController::class,'store']);
+
+    Route::get('/{id}', [BookController::class,'show']);
+
+    Route::put('/{id}',[BookController::class,'update']);
+
+    Route::delete('/{id}',[BookController::class,'destroy']);
+
+
 });
 
-Route::get('/book/{id}', function($id){
-    return new BookResource(Book::find($id));
+Route::prefix('publishers')->group(function () {
+    Route::get('/', [PublisherController::class,'index']);
+
+    Route::post('/new', [PublisherController::class,'store']);
+
+    Route::get('/{id}', [PublisherController::class,'show']);
+
+    Route::put('/{id}', [PublisherController::class,'update']);
+
+    Route::delete('/{id}', [PublisherController::class,'destroy']);
+
+
+
 });
 
-Route::get('/publishers', function(){
-    return PublisherResource::collection(Publisher::all());
+Route::prefix('authors')->group(function () {
+    Route::get('/', [AuthorController::class,'index']);
+
+    Route::post('/new', [AuthorController::class,'store']);
+
+    Route::get('/{id}', [AuthorController::class,'show']);
+
+    Route::put('/{id}', [AuthorController::class,'update']);
+
+    Route::delete('/{id}', [AuthorController::class,'destroy']);
+
+
+
 });
 
-Route::get('/publisher/{id}', function($id){
-    return new publisherResource(publisher::find($id));
+Route::prefix('categories')->group(function () {
+    Route::get('/', [CategoryController::class,'index'] );
+
+    Route::post('/new', [CategoryController::class,'store']);
+
+    Route::get('/{id}',[CategoryController::class,'show']);
+
+    Route::put('/{id}',[CategoryController::class,'update']);
+
+    Route::delete('/{id}',[CategoryController::class,'destroy']);
+
+
 });
-Route::get('/authors', function(){
-    return AuthorResource::collection(Author::all());
-});
-Route::get('/author/{id}', function($id){
-    return new AuthorResource(Author::find($id));
-});
-Route::get('/categories', function(){
-    return CategoryResource::collection(Category::all());
-});
-Route::get('/category/{id}', function($id){
-    return new CategoryResource(Category::find($id));
-});
+
+
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });

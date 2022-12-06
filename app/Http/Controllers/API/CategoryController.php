@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
 {
@@ -14,7 +16,7 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
+        return Category::all();
     }
 
     /**
@@ -35,7 +37,23 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $input = $request->all();
+
+        $validator = Validator::make($input, [
+            'name' => 'string|required|min:6',
+        ]);
+
+        if ($validator->fails()){
+            return $this->sendError('Validation Error', $validator->errors());
+        }
+
+        $category = Category::create($input);
+        return response()->json([
+            'success' => true,
+            'message' => 'The category have been registered successfully.',
+            'category' => $category
+
+        ]);
     }
 
     /**
@@ -69,7 +87,20 @@ class CategoryController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        if ($this->recordExists($id)) {
+            $category = Category::find($id);
+            $category->name = $request->name;
+            $category->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'The category have been updated.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The category don't exist in our records.",
+            ], 404);
+        }
     }
 
     /**
@@ -80,6 +111,27 @@ class CategoryController extends Controller
      */
     public function destroy($id)
     {
-        //
+        if ($this->recordExists($id)) {
+            $category = Category::find($id);
+            $category->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'The category have been deleted.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The category don't exist in our records.",
+            ], 404);
+        }
+    }
+    /**
+     *  Retorna true o false si el registro existe
+     *
+     * @param integer $id
+     * @return boolean
+     */
+    private function recordExists(int $id): bool {
+        return Category::where('id',$id)->exists();
     }
 }

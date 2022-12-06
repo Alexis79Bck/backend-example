@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\BookResource;
 use App\Models\Book;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -37,29 +38,20 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
-        /**
-         * var $input almacena todos los request recibido en el http request
-         */
+
         $input = $request->all();
-        /**
-         * var $validator recibe el resultado de la clase Validator
-         * valida las entradas recibidas en el request.
-         */
+
         $validator = Validator::make($input, [
             'title' => 'string|required|min:6',
-            'npges' => 'numeric|required',
+            'npages' => 'numeric|required',
             'language' => 'required',
             'releaseYear' => 'numeric|required',
         ]);
-        /**
-         * Condicional en caso de que falle el validator, retorna los errores.
-         */
+
         if ($validator->fails()){
             return $this->sendError('Validation Error', $validator->errors());
         }
-        /**
-         * Crear el registro
-         */
+
         $book = Book::create($input);
         return response()->json([
             'success' => true,
@@ -79,7 +71,7 @@ class BookController extends Controller
      */
     public function show($id)
     {
-        //
+        return Book::find($id);
     }
 
     /**
@@ -102,7 +94,27 @@ class BookController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+
+        if ($this->recordExists($id)){
+            $book = Book::find($id);
+            $book->title = $request->title ?? $book->title ;
+            $book->npages = $request->npages ??  $book->npages;
+            $book->language = $request->language ?? $book->language;
+            $book->releaseYear = $request->releaseYear ?? $book->releaseYear;
+            $book->author_id = $request->author_id ?? $book->author_id;
+            $book->publisher_id = $request->publisher_id ?? $book->publisher_id;
+            $book->category_id = $request->category_id ?? $book->category_id;
+            $book->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'The book have been updated.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The book don't exist in our records.",
+            ], 404);
+        }
     }
 
     /**
@@ -113,6 +125,28 @@ class BookController extends Controller
      */
     public function destroy($id)
     {
-        //
+
+        if ($this->recordExists($id)) {
+            $book = Book::find($id);
+            $book->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'The book have been deleted.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The book don't exist in our records.",
+            ], 404);
+        }
+    }
+    /**
+     *  Retorna true o false si el registro existe
+     *
+     * @param integer $id
+     * @return boolean
+     */
+    private function recordExists(int $id): bool {
+        return Book::where('id',$id)->exists();
     }
 }

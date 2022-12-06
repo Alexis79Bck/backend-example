@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Author;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class AuthorController extends Controller
 {
@@ -14,7 +16,7 @@ class AuthorController extends Controller
      */
     public function index()
     {
-        //
+        return Author::all();
     }
 
     /**
@@ -35,7 +37,23 @@ class AuthorController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $input = $request->all();
+
+        $validator = Validator::make($input, [
+            'name' => 'string|required|min:6',
+        ]);
+
+        if ($validator->fails()){
+            return $this->sendError('Validation Error', $validator->errors());
+        }
+
+        $author = Author::create($input);
+        return response()->json([
+            'success' => true,
+            'message' => 'The author have been registered successfully.',
+            'author' => $author
+
+        ]);
     }
 
     /**
@@ -46,7 +64,7 @@ class AuthorController extends Controller
      */
     public function show($id)
     {
-        //
+        return Author::findOrFail($id);
     }
 
     /**
@@ -69,7 +87,20 @@ class AuthorController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        if ($this->recordExists($id)) {
+            $author = Author::find($id);
+            $author->name = $request->name;
+            $author->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'The author have been updated.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The author don't exist in our records.",
+            ], 404);
+        }
     }
 
     /**
@@ -80,6 +111,27 @@ class AuthorController extends Controller
      */
     public function destroy($id)
     {
-        //
+        if ($this->recordExists($id)) {
+            $author = Author::find($id);
+            $author->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'The author have been deleted.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The author don't exist in our records.",
+            ], 404);
+        }
+    }
+    /**
+     *  Retorna true o false si el registro existe
+     *
+     * @param integer $id
+     * @return boolean
+     */
+    private function recordExists(int $id): bool {
+        return Author::where('id',$id)->exists();
     }
 }

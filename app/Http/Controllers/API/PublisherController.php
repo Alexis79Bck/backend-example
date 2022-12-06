@@ -3,7 +3,9 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Publisher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class PublisherController extends Controller
 {
@@ -14,7 +16,7 @@ class PublisherController extends Controller
      */
     public function index()
     {
-        //
+        return Publisher::all();
     }
 
     /**
@@ -35,7 +37,24 @@ class PublisherController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $input = $request->all();
+
+        $validator = Validator::make($input, [
+            'name' => 'string|required|min:6',
+            'country' => 'string|required',
+        ]);
+
+        if ($validator->fails()){
+            return $this->sendError('Validation Error', $validator->errors());
+        }
+
+        $publisher = Publisher::create($input);
+        return response()->json([
+            'success' => true,
+            'message' => 'The publisher have been registered successfully.',
+            'publisher' => $publisher
+
+        ]);
     }
 
     /**
@@ -69,7 +88,20 @@ class PublisherController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        if ($this->recordExists($id)) {
+            $publisher = Publisher::find($id);
+            $publisher->name = $request->name;
+            $publisher->save();
+            return response()->json([
+                'success' => true,
+                'message' => 'The publisher have been updated.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The publisher don't exist in our records.",
+            ], 404);
+        }
     }
 
     /**
@@ -80,6 +112,27 @@ class PublisherController extends Controller
      */
     public function destroy($id)
     {
-        //
+        if ($this->recordExists($id)) {
+            $publisher = Publisher::find($id);
+            $publisher->delete();
+            return response()->json([
+                'success' => true,
+                'message' => 'The publisher have been deleted.',
+            ], 200);
+        }else{
+            return response()->json([
+                'success' => false,
+                'message' => "The publisher don't exist in our records.",
+            ], 404);
+        }
+    }
+    /**
+     * Retorna true o false si el registro existe
+     *
+     * @param integer $id
+     * @return boolean
+     */
+    private function recordExists(int $id): bool {
+        return Publisher::where('id',$id)->exists();
     }
 }

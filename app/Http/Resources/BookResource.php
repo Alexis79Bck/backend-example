@@ -22,8 +22,11 @@ class BookResource extends JsonResource
             'npages' => $this->npages,
             'language' => $this->language,
             'releaseYear' => $this->releaseYear,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
+            'author' => $this->author->name,
+            'publisher' => $this->publisher->name,
+            'category' => $this->category->name,
+            // 'created_at' => $this->created_at,
+            // 'updated_at' => $this->updated_at,
         ];
     }
 }

@@ -65,7 +65,7 @@ class PublisherController extends Controller
      */
     public function show($id)
     {
-        //
+        return Publisher::find($id);
     }
 
     /**
